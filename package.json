@@ -1,0 +1,18 @@
+{
+  "name": "slopchan-trashposter",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "A native Go and TypeScript slopchan broadcasting workstation",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "start": "go run github.com/wailsapp/wails/v2/cmd/wails@v2.15.0 dev",
+    "dev": "go run github.com/wailsapp/wails/v2/cmd/wails@v2.15.0 dev",
+    "build": "go run github.com/wailsapp/wails/v2/cmd/wails@v2.15.0 build -clean",
+    "check": "npm --prefix frontend run check && go vet ./...",
+    "test": "go test -race ./...",
+    "test:ui": "cd frontend && npx playwright test"
+  }
+}

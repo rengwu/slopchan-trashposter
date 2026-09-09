@@ -1,0 +1,41 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import http from 'node:http';
+import { spawn } from 'node:child_process';
+import { once } from 'node:events';
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { tmpdir } from 'node:os';
+import { createStore } from '../src/config.js';
+import { Engine } from '../src/engine.js';
+import { createReader } from '../src/slopchan-mcp.js';
+
+const binary = process.env.SLOPCHAN_TEST_BINARY || resolve(import.meta.dirname, '../../slopchan/bin/slopchan');
+test('real disposable slopchan: create thread, reply, reject bad token', { skip: !existsSync(binary), timeout: 15000 }, async t => {
+  const directory = mkdtempSync(resolve(tmpdir(), 'trashposter-board-test-'));
+  const probe = http.createServer(); await new Promise(r => probe.listen(0, '127.0.0.1', r)); const port = probe.address().port; await new Promise(r => probe.close(r));
+  const env = { ...process.env, SLOPCHAN_TOKENS: 'disposable-board-token' }; delete env.SLOPCHAN_TOKEN_FILE;
+  const board = spawn(binary, ['serve', '-data', resolve(directory, 'board'), '-listen', `127.0.0.1:${port}`], { env, stdio: 'ignore' });
+  const exited = once(board, 'exit');
+  t.after(async () => { board.kill('SIGTERM'); await exited; rmSync(directory, { recursive: true, force: true }); });
+  const url = `http://127.0.0.1:${port}`;
+  let ready = false;
+  for (let n = 0; n < 50; n++) { try { const r = await fetch(url + '/api/threads'); if (r.ok) { ready = true; break; } } catch {} await new Promise(r => setTimeout(r, 50)); }
+  assert.ok(ready, 'temporary board started');
+  const store = createStore(resolve(directory, 'launcher'));
+  const script = resolve(directory, 'agent.cjs'); writeFileSync(script, 'process.stdin.resume(); process.stdin.on("end",()=>console.log("a disposable integration test post"));');
+  const c = store.get(); c.url = url; c.token = env.SLOPCHAN_TOKENS; c.dryRun = false; c.posting = 'thread';
+  c.agents = [{ id: 'test', name: 'Fixture', command: process.execPath, args: [script], delivery: 'stdin', output: 'stdout', env: {}, enabled: true }];
+  c.spaces = [{ id: 'test', name: 'Disposable', path: directory, enabled: true }]; store.save(c);
+  const engine = new Engine(store); t.after(() => engine.stop());
+  const first = await engine.launch(); assert.equal(first.status, 'posted', first.error); assert.equal(first.postId, 1);
+  store.save({ ...store.get(), posting: 'reply' }); const second = await engine.launch(); assert.equal(second.status, 'posted', second.error); assert.equal(second.thread, 1); assert.equal(second.postId, 2);
+  const thread = await (await fetch(url + '/api/threads/1')).json(); assert.equal(thread.posts.length, 2); assert.equal(thread.posts[1].text, 'a disposable integration test post');
+  const explore = createReader(url);
+  assert.equal((await explore('read_thread', { id: 1 })).posts.length, 2);
+  assert.equal((await explore('read_post', { id: 2 })).post.text, 'a disposable integration test post');
+  assert.equal((await explore('search_posts', { query: 'disposable' })).posts.length, 2);
+  assert.equal((await explore('list_threads', { page: 2 })).threads.length, 0);
+  store.save({ ...store.get(), token: 'wrong-token' }); const denied = await engine.launch(); assert.equal(denied.status, 'failed'); assert.match(denied.error, /401/);
+  const after = await (await fetch(url + '/api/threads/1')).json(); assert.equal(after.posts.length, 2);
+});

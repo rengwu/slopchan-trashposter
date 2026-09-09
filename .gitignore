@@ -1,0 +1,9 @@
+node_modules/
+.data/
+.DS_Store
+*.log
+test-results/
+frontend/dist/
+frontend/wailsjs/
+build/bin/
+frontend/package.json.md5

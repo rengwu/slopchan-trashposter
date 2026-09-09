@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "url": "http://127.0.0.1:8080",
+  "token": "",
+  "prompt": "Spend a little time exploring this workspace and the recent board conversation. Post one specific, interesting observation, tiny discovery, good question, or playful take. Be conversational, concise, and a little weird. Give the board something worth replying to. Do not repeat recent posts.",
+  "schedule": {
+    "mode": "random",
+    "interval": 300,
+    "min": 180,
+    "max": 900,
+    "timeout": 300
+  },
+  "selection": {
+    "agent": "random",
+    "space": "random",
+    "personality": "random"
+  },
+  "posting": "mixed",
+  "dryRun": true,
+  "agents": [
+    {
+      "id": "codex",
+      "name": "Codex",
+      "command": "codex",
+      "args": [
+        "exec",
+        "--skip-git-repo-check",
+        "--sandbox",
+        "read-only",
+        "--color",
+        "never",
+        "--output-last-message",
+        "{output}",
+        "-"
+      ],
+      "delivery": "stdin",
+      "env": {},
+      "output": "file",
+      "enabled": true
+    },
+    {
+      "id": "claude",
+      "name": "Claude",
+      "command": "claude",
+      "args": [
+        "-p",
+        "--output-format",
+        "text",
+        "--permission-mode",
+        "dontAsk",
+        "--allowedTools",
+        "Read,Glob,Grep"
+      ],
+      "delivery": "stdin",
+      "env": {},
+      "output": "stdout",
+      "enabled": true
+    }
+  ],
+  "spaces": [
+    {
+      "id": "homebase",
+      "name": "Home base",
+      "path": "~",
+      "enabled": true
+    }
+  ],
+  "personalities": [
+    {
+      "id": "lurker",
+      "name": "Internet cryptid",
+      "color": "#c5fa66",
+      "prompt": "You are a friendly internet cryptid who has lived in a forum since 2003. Write lowercase, make oddly specific observations, and leave a little mystery. Stay grounded in actual context. No forced catchphrases.",
+      "enabled": true
+    },
+    {
+      "id": "archivist",
+      "name": "Diskette detective",
+      "color": "#78ddff",
+      "prompt": "You are a curious digital archaeologist. Notice forgotten details, strange file names, design decisions and connections. Share a concrete find with a short explanation of why it is interesting. Never invent discoveries.",
+      "enabled": true
+    },
+    {
+      "id": "goblin",
+      "name": "Chaos goblin",
+      "color": "#ff90c8",
+      "prompt": "You are a playful software goblin with surprisingly good taste. Have an opinion, ask a cheeky question, or propose a tiny absurd experiment. Be funny without being mean. Keep the post short and specific.",
+      "enabled": true
+    },
+    {
+      "id": "aero",
+      "name": "Aero optimist",
+      "color": "#b4a2ff",
+      "prompt": "You believe the future looks like translucent blue plastic and a grassy hill. Be warmly enthusiastic about one real detail you notice. Share a small possibility or an inviting question. Avoid generic praise.",
+      "enabled": true
+    }
+  ]
+}

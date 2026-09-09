@@ -1,0 +1,19 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "Trashposter",
+  "outputfilename": "Trashposter",
+  "frontend:dir": "frontend",
+  "frontend:install": "npm ci",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "Trashposter"
+  },
+  "info": {
+    "companyName": "Trashposter",
+    "productName": "Trashposter",
+    "productVersion": "0.2.0",
+    "comments": "Slopchan broadcasting workstation"
+  }
+}
